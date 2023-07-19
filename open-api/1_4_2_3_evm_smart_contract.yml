@@ -1,0 +1,50 @@
+openapi: "3.0.2"
+info:
+  title: Block Explorer Data API for EVM Smart Contract Extension
+  description: >
+    Extension of the Reference API specification for L2 blockchain explorers.
+    This extension inherits from the Ethereum Account Extension specification.
+  version: "1.0"
+
+paths:
+  # This path overrides the inherited path
+  /accounts/{address}:
+    get:
+      summary: Get core details of a L2 account.
+      parameters:
+        - name: address
+          in: path
+          required: true
+          description: The unique identifier of an Ethereum account (the account address).
+          schema:
+            type: string
+            example: "0x7681ed0bbbcd36b55d98d911f97ccc0ad2eb2174"
+      responses:
+        "404":
+          description: An account with the given address was not found.
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "1_4_2_2_eth_account.yml#/components/schemas/AccountDetail"
+                  - $ref: "#/components/schemas/SmartContractDetail"
+
+components:
+  schemas:
+    SmartContractDetail:
+      description: Core details about a L2 smart contract.
+      allOf:
+        - $ref: "1_4_2_2_eth_account.yml#/components/schemas/AccountDetail"
+        - type: object
+          properties:
+            byteCode:
+              type: string
+              description: The byte code of the smart contract.
+            deploymentTransaction:
+              type: string
+              description: The hash of the transaction which deployed the smart contract.
+            contractCreator:
+              type: string
+              description: The address of the contract creator.

@@ -1,0 +1,67 @@
+openapi: "3.0.2"
+info:
+  title: Block Explorer Data API for Internal EVM Transaction Extension
+  description: >
+    Extension of the Reference API specification for L2 blockchain explorers.
+    This extension inherits from the core specification, and the L1->L2 Transactions and L2->L1 Transactions extensions.
+  version: "1.0"
+
+paths:
+  /transactions/{txHash}/internal:
+    get:
+      summary: Get internal transaction details of a L2 transaction.
+      parameters:
+        - name: txHash
+          in: path
+          required: true
+          description: Transaction hash.
+          schema:
+            type: string
+            example: "0xd49ef9608fcc840cae432066b1815872539c1bdfdd505bea865dc560bf410c90"
+      responses:
+        "404":
+          description: A transaction with the given hash was not found.
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalTransactionList"
+
+components:
+  schemas:
+    InternalTransactionList:
+      description: A list of internal transactions.
+      type: array
+      items:
+        $ref: "#/components/schemas/InternalTransactionDetail"
+    InternalTransactionDetail:
+      type: object
+      properties:
+        sender:
+          $ref: "1_4_1_core.yml#/components/schemas/Address"
+        receiver:
+          $ref: "1_4_1_core.yml#/components/schemas/Address"
+        typeTraceAddress:
+          type: string
+          description: >
+            An identifier used to identify internal transactions within a transaction.
+            This identifier consists of two parts:
+              - The type of internal transaction (e.g. call, staticcall, create, suicide, etc).
+              - The trace address, which is the index of a given internal transaction in an EVM trace tree.
+          example: "call_0_1"
+          nullable: true
+        type:
+          type: string
+          description: >
+            The name of the OPCODE for this internal transaction. A complete list of opcodes can be found at:
+            https://ethereum.org/en/developers/docs/evm/opcodes/
+          example: CALL
+          nullable: true
+        value:
+          type: string
+          example: "123"
+          description: >
+            Amount, in the chain's native token (e.g. ETH), being transferred in this internal transaction.
+            This value is a uint256 in decimal form presented as a string.
+          nullable: true

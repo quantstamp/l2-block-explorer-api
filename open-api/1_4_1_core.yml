@@ -1,0 +1,248 @@
+openapi: "3.0.2"
+info:
+  title: Block Explorer Data API for Core Requirements
+  description: Reference API specification for L2 blockchain explorers.
+  version: "1.0"
+
+paths:
+  /transactions/{txHash}:
+    get:
+      summary: Get core details of a L2 transaction.
+      parameters:
+        - name: txHash
+          in: path
+          required: true
+          description: Transaction hash.
+          schema:
+            type: string
+            example: "0xd49ef9608fcc840cae432066b1815872539c1bdfdd505bea865dc560bf410c90"
+      responses:
+        "404":
+          description: A transaction with the given hash was not found.
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionDetail"
+
+  /transactions:
+    get:
+      summary: Get a list of L2 transactions.
+      parameters:
+        - in: query
+          name: offset
+          schema:
+            type: integer
+          description: The number of items to skip before starting to collect the result set.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: The numbers of items to return.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/TransactionList"
+                  paginationContext:
+                    $ref: "#/components/schemas/PaginationContext"
+
+  /blocks/{blockId}:
+    get:
+      summary: Get core details of a L2 block.
+      parameters:
+        - name: blockId
+          in: path
+          required: true
+          description: The unique identifier of a block (e.g. the block hash).
+          schema:
+            type: string
+            example: "0x079dba31b02aad5eb8c617400bbe77aaa5b86f12a89b559916a7577419827ed0"
+      responses:
+        "404":
+          description: A block with the given identifier was not found.
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlockDetail"
+
+  /blocks:
+    get:
+      summary: Get a list of L2 blocks.
+      parameters:
+        - in: query
+          name: offset
+          schema:
+            type: integer
+          description: The number of items to skip before starting to collect the result set.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: The numbers of items to return.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/BlockList"
+                  paginationContext:
+                    $ref: "#/components/schemas/PaginationContext"
+
+components:
+  schemas:
+    Address:
+      type: object
+      properties:
+        address:
+          type: string
+          example: "0x839e26ce11b5cc1cacb96c8e689cb83fa9ec6ba7"
+          description: An account address identifier.
+    TransactionDetail:
+      description: Core details about an L2 transaction.
+      type: object
+      properties:
+        hash:
+          type: string
+          example: "0xd49ef9608fcc840cae432066b1815872539c1bdfdd505bea865dc560bf410c90"
+          description: Hash of the transaction.
+        executionStatus:
+          type: string
+          enum:
+            - "Success"
+            - "Failure"
+            - "Replaced"
+            - "Dropped"
+            - "Pending"
+          example: "Success"
+          description: The execution status of the transaction.
+        blockId:
+          type: string
+          example: "12345"
+          description: |
+            Identifier for the L2 block which contains this transaction.
+            The exact format of this identifier is chain-dependant.
+            This field is nullable because a transaction may not yet belong to a block in the chain.
+          nullable: true
+        nonce:
+          type: integer
+          example: 42
+        rollupTransactionInformation:
+          type: object
+          description: |
+            Additional information about this transaction which is specific to the rollup implementation.
+          nullable: true
+        sender:
+          $ref: "#/components/schemas/Address"
+        receiver:
+          $ref: "#/components/schemas/Address"
+        value:
+          type: string
+          example: "123"
+          description: >
+            Amount, in the chain's native token (e.g. ETH), attached to this transaction.
+            This value is a uint256 in decimal form presented as a string.
+        transactionFee:
+          type: string
+          example: "12"
+          description: Cost, in the chain's native token, charged as a fee to process this transaction.
+        gasPrice:
+          type: string
+          example: "3"
+          description: Price of gas, in the chain's native token, at the time the transaction was processed.
+        gasLimit:
+          type: string
+          example: "123"
+          description: Maximum gas amount this transaction is allowed to consume.
+        gasUsage:
+          type: string
+          example: "45"
+          description: Amount of gas used to execute this transaction.
+        inputData:
+          type: string
+          example: >-
+            0x1114cd2a0000000000000000000000000000000000000000000000000000000000
+            00006e000000000000000000000000b99210854b7113f5cb0bdc325238d9b71b73
+            87b200000000000000000000000000000000000000000000000000000000000000
+            a0000000000000000000000000000000000000000000000000011b2127fe7bfad0
+            0000000000000000000000000000000000000000000000000119b6c01d363d6000
+            00000000000000000000000000000000000000000000000000000000000014b992
+            10854b7113f5cb0bdc325238d9b71b7387b2000000000000000000000000
+          description: Call data for the transaction.
+    TransactionList:
+      description: A list of L2 transactions.
+      type: array
+      items:
+        $ref: "#/components/schemas/TransactionListElement"
+    TransactionListElement:
+      description: Information about a transaction to be displayed in a list.
+      type: object
+      properties:
+        hash:
+          type: string
+          example: "0xd49ef9608fcc840cae432066b1815872539c1bdfdd505bea865dc560bf410c90"
+          description: Hash of the transaction.
+    BlockDetail:
+      description: Core details about an L2 block.
+      type: object
+      properties:
+        id:
+          type: string
+          example: "0xeb016c292316e3af7f1c5184524b585a035d7ebeabddf52a1548fd376a77908a"
+          description: The unique identifier of the block (e.g. the block hash).
+        parentId:
+          type: string
+          example: "0xbb01cd10578f92bd66f2a04b48d17402e6286f7a2e91498ecdc918fc71d34f6d"
+          description: The unique identifier of the parent block.
+        status:
+          type: string
+          description: The status of this block with respect to the state of the chain. Possible values are chain-dependant.
+        timestamp:
+          type: integer
+          example: 1684948984227
+          description: The time at which the block was included in the chain, in unix milliseconds.
+        height:
+          type: integer
+          example: 94013257
+          description: The height of the block in the chain (aka block number).
+        transactions:
+          description: A list of L2 transactions included in this block.
+          $ref: "#/components/schemas/TransactionList"
+    BlockList:
+      description: A list of L2 blocks.
+      type: array
+      items:
+        $ref: "#/components/schemas/BlockListElement"
+    BlockListElement:
+      description: Information about a L2 block to be displayed in a list.
+      type: object
+      properties:
+        id:
+          type: string
+          example: "0xeb016c292316e3af7f1c5184524b585a035d7ebeabddf52a1548fd376a77908a"
+          description: The unique identifier of the block (e.g. the block hash)
+    PaginationContext:
+      description: Pagination information for long lists.
+      type: object
+      properties:
+        limit:
+          type: integer
+          description: The limit provided in the query parameters which produced this result.
+          nullable: true
+        offset:
+          type: integer
+          description: The offset provided in the query parameters which produced this result.
+          nullable: true
+

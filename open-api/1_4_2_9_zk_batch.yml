@@ -1,0 +1,46 @@
+openapi: "3.0.2"
+info:
+  title: Block Explorer Data API for ero Knowledge Batch Extension
+  description: >
+    Extension of the Reference API specification for L2 blockchain explorers.
+    This extension inherits from the Block Batch specification.
+  version: "1.0"
+
+paths:
+  # This path overrides the inherited path
+  /batches/{batchId}:
+    get:
+      summary: Get core details of a L2 block batch.
+      parameters:
+        - name: batchId
+          in: path
+          required: true
+          description: The unique identifier of a L2 block batch (e.g. the block batch hash).
+          schema:
+            type: string
+            example: "0x079dba31b02aad5eb8c617400bbe77aaa5b86f12a89b559916a7577419827ed0"
+      responses:
+        "404":
+          description: A block batch with the given identifier was not found.
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchDetail"
+
+components:
+  schemas:
+    BatchDetail:
+      allOf:
+        - $ref: "1_4_2_1_block_batch.yml#/components/schemas/BatchDetail"
+        - type: object
+          properties:
+            stateUpdateTransaction:
+              type: string
+              description: The L1 transaction hash of the state update which includes this batch.
+              nullable: true
+            proofPayload:
+              type: string
+              description: The validity proof payload for this batch.
+              nullable: true
